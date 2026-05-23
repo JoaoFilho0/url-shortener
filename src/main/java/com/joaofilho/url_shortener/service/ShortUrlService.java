@@ -4,6 +4,7 @@ import com.joaofilho.url_shortener.Model.ShortUrl;
 import com.joaofilho.url_shortener.repository.ShortUrlRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -33,5 +34,9 @@ public class ShortUrlService {
 
     public ShortUrl getShortUrlByShortCode(String code) {
         return this.shortUrlRepository.findByShortCode(code);
+    }
+
+    public List<ShortUrl> getAllShortUrls() {
+        return this.shortUrlRepository.findAll();
     }
 }

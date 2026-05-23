@@ -4,6 +4,8 @@ import com.joaofilho.url_shortener.Model.ShortUrl;
 import com.joaofilho.url_shortener.dto.ShortUrlShortenRequest;
 import com.joaofilho.url_shortener.dto.ShortUrlShortenResponse;
 import com.joaofilho.url_shortener.service.ShortUrlService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
-@RequestMapping("/url")
+@RequestMapping("/shortener_url")
 public class ShortUrlController {
     private final ShortUrlService shortUrlService;
 
@@ -25,7 +28,7 @@ public class ShortUrlController {
     }
 
     @PostMapping
-    public ResponseEntity<ShortUrlShortenResponse> shorten(@RequestBody ShortUrlShortenRequest url) {
+    public ResponseEntity<ShortUrlShortenResponse> shorten(@RequestBody @Valid ShortUrlShortenRequest url) {
         String code = this.shortUrlService.generateCode();
 
         ShortUrl shortUrl = new ShortUrl();
@@ -44,7 +47,23 @@ public class ShortUrlController {
     }
 
     @GetMapping("/{code}")
-    public ResponseEntity<String> getOriginalUrl(@PathVariable String code) {
-        return ResponseEntity.ok(this.shortUrlService.getShortUrlByShortCode(code).getOriginalUrl());
+    public ResponseEntity<Void> getOriginalUrl(@PathVariable String code) {
+        ShortUrl shortUrl = shortUrlService.getShortUrlByShortCode(code);
+
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(URI.create(shortUrl.getOriginalUrl()))
+                .build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ShortUrlShortenResponse>> getAllShortUrls() {
+        return ResponseEntity
+                .ok(
+                        this.shortUrlService.getAllShortUrls()
+                                .stream()
+                                .map(ShortUrlShortenResponse::new)
+                                .toList()
+                );
     }
 }

@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "url")
+@Table(name = "short_url")
 @Getter
 @Setter
 public class ShortUrl {
