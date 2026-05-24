@@ -1,8 +1,8 @@
 package com.joaofilho.url_shortener.controller;
 
 import com.joaofilho.url_shortener.Model.ShortUrl;
-import com.joaofilho.url_shortener.dto.ShortUrlShortenRequest;
-import com.joaofilho.url_shortener.dto.ShortUrlShortenResponse;
+import com.joaofilho.url_shortener.dto.ShortUrlShortenRequestDTO;
+import com.joaofilho.url_shortener.dto.ShortUrlShortenResponseDTO;
 import com.joaofilho.url_shortener.service.ShortUrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/shortener_url")
+@RequestMapping("/short-urls")
 public class ShortUrlController {
     private final ShortUrlService shortUrlService;
 
@@ -28,12 +28,8 @@ public class ShortUrlController {
     }
 
     @PostMapping
-    public ResponseEntity<ShortUrlShortenResponse> shorten(@RequestBody @Valid ShortUrlShortenRequest url) {
-        String code = this.shortUrlService.generateCode();
-
-        ShortUrl shortUrl = new ShortUrl();
-        shortUrl.setOriginalUrl(url.url());
-        shortUrl.setShortCode(code);
+    public ResponseEntity<ShortUrlShortenResponseDTO> shorten(@RequestBody @Valid ShortUrlShortenRequestDTO url) {
+        ShortUrl shortUrl = this.shortUrlService.createShortenerUrl(url);
 
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -41,9 +37,7 @@ public class ShortUrlController {
                 .buildAndExpand(shortUrl.getShortCode())
                 .toUri();
 
-        this.shortUrlService.createShortenerUrl(shortUrl);
-
-        return ResponseEntity.created(uri).body(new ShortUrlShortenResponse(shortUrl));
+        return ResponseEntity.created(uri).body(new ShortUrlShortenResponseDTO(shortUrl));
     }
 
     @GetMapping("/{code}")
@@ -57,12 +51,12 @@ public class ShortUrlController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ShortUrlShortenResponse>> getAllShortUrls() {
+    public ResponseEntity<List<ShortUrlShortenResponseDTO>> getAllShortUrls() {
         return ResponseEntity
                 .ok(
                         this.shortUrlService.getAllShortUrls()
                                 .stream()
-                                .map(ShortUrlShortenResponse::new)
+                                .map(ShortUrlShortenResponseDTO::new)
                                 .toList()
                 );
     }
