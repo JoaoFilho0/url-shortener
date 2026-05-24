@@ -23,7 +23,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d url_shortener"
+          --health-cmd "pg_isready -U ${{ vars.DATABASE_USERNAME }} -d ${{ vars.DATABASE_NAME }}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -49,5 +49,14 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x mvnw
 
-      - name: Build and run tests
-        run: ./mvnw clean verify
+      - name: Build package
+        run: ./mvnw package -DskipTests
+
+      - name: Run tests
+        run: ./mvnw test
+
+      - name: Validate database migrations
+        run: ./mvnw -Dtest=UrlShortenerApplicationIT test
+
+      - name: Generate test coverage
+        run: ./mvnw test jacoco:report
