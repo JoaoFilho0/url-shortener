@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ShortUrlRepository extends JpaRepository<ShortUrl, Long> {
     ShortUrl findByShortCode(String code);
+
+    boolean existsByShortCode(String code);
 }

@@ -29,19 +29,13 @@ public class ShortUrlController {
 
     @PostMapping
     public ResponseEntity<ShortUrlShortenResponseDTO> shorten(@RequestBody @Valid ShortUrlShortenRequestDTO url) {
-        String code = this.shortUrlService.generateCode();
-
-        ShortUrl shortUrl = new ShortUrl();
-        shortUrl.setOriginalUrl(url.url());
-        shortUrl.setShortCode(code);
+        ShortUrl shortUrl = this.shortUrlService.createShortenerUrl(url);
 
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{code}")
                 .buildAndExpand(shortUrl.getShortCode())
                 .toUri();
-
-        this.shortUrlService.createShortenerUrl(shortUrl);
 
         return ResponseEntity.created(uri).body(new ShortUrlShortenResponseDTO(shortUrl));
     }
