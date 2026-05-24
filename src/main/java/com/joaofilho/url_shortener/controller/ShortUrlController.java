@@ -1,8 +1,8 @@
 package com.joaofilho.url_shortener.controller;
 
 import com.joaofilho.url_shortener.Model.ShortUrl;
-import com.joaofilho.url_shortener.dto.ShortUrlShortenRequest;
-import com.joaofilho.url_shortener.dto.ShortUrlShortenResponse;
+import com.joaofilho.url_shortener.dto.ShortUrlShortenRequestDTO;
+import com.joaofilho.url_shortener.dto.ShortUrlShortenResponseDTO;
 import com.joaofilho.url_shortener.service.ShortUrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -28,7 +28,7 @@ public class ShortUrlController {
     }
 
     @PostMapping
-    public ResponseEntity<ShortUrlShortenResponse> shorten(@RequestBody @Valid ShortUrlShortenRequest url) {
+    public ResponseEntity<ShortUrlShortenResponseDTO> shorten(@RequestBody @Valid ShortUrlShortenRequestDTO url) {
         String code = this.shortUrlService.generateCode();
 
         ShortUrl shortUrl = new ShortUrl();
@@ -43,7 +43,7 @@ public class ShortUrlController {
 
         this.shortUrlService.createShortenerUrl(shortUrl);
 
-        return ResponseEntity.created(uri).body(new ShortUrlShortenResponse(shortUrl));
+        return ResponseEntity.created(uri).body(new ShortUrlShortenResponseDTO(shortUrl));
     }
 
     @GetMapping("/{code}")
@@ -57,12 +57,12 @@ public class ShortUrlController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ShortUrlShortenResponse>> getAllShortUrls() {
+    public ResponseEntity<List<ShortUrlShortenResponseDTO>> getAllShortUrls() {
         return ResponseEntity
                 .ok(
                         this.shortUrlService.getAllShortUrls()
                                 .stream()
-                                .map(ShortUrlShortenResponse::new)
+                                .map(ShortUrlShortenResponseDTO::new)
                                 .toList()
                 );
     }
