@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/shortener_url")
+@RequestMapping("/short-urls")
 public class ShortUrlController {
     private final ShortUrlService shortUrlService;
 

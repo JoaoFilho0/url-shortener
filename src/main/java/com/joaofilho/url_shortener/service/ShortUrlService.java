@@ -2,6 +2,7 @@ package com.joaofilho.url_shortener.service;
 
 import com.joaofilho.url_shortener.Model.ShortUrl;
 import com.joaofilho.url_shortener.dto.ShortUrlShortenRequestDTO;
+import com.joaofilho.url_shortener.exception.ResourceNotFoundException;
 import com.joaofilho.url_shortener.repository.ShortUrlRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.List;
+
+import static com.joaofilho.url_shortener.exception.ExceptionMessages.COULD_NOT_GENERATE_A_UNIQUE_SHORT_CODE;
+import static com.joaofilho.url_shortener.exception.ExceptionMessages.SHORT_URL_NOT_FOUND;
 
 @Service
 public class ShortUrlService {
@@ -53,11 +57,11 @@ public class ShortUrlService {
             }
         }
 
-        throw new IllegalStateException("Could not generate a unique short code");
+        throw new IllegalStateException(COULD_NOT_GENERATE_A_UNIQUE_SHORT_CODE);
     }
 
     public ShortUrl getShortUrlByShortCode(String code) {
-        return this.shortUrlRepository.findByShortCode(code);
+        return this.shortUrlRepository.findByShortCode(code).orElseThrow(() -> new ResourceNotFoundException(SHORT_URL_NOT_FOUND));
     }
 
     public List<ShortUrl> getAllShortUrls() {

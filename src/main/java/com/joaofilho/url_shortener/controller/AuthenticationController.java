@@ -4,8 +4,9 @@ import com.joaofilho.url_shortener.Model.User;
 import com.joaofilho.url_shortener.dto.AuthenticationDTO;
 import com.joaofilho.url_shortener.dto.LoginResponseDTO;
 import com.joaofilho.url_shortener.dto.RegisterDTO;
-import com.joaofilho.url_shortener.repository.UserRepository;
+import com.joaofilho.url_shortener.dto.RegisterResponseDTO;
 import com.joaofilho.url_shortener.service.TokenService;
+import com.joaofilho.url_shortener.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,25 +16,25 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Objects;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final TokenService tokenService;
-    private final PasswordEncoder passwordEncoder;
 
     public AuthenticationController(AuthenticationManager authenticationManager,
-                                    UserRepository userRepository,
+                                    UserService userService,
                                     TokenService tokenService,
                                     PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.tokenService = tokenService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
@@ -48,13 +49,14 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegisterDTO data) {
-        if (this.userRepository.findByEmail(data.email()) != null) return ResponseEntity.badRequest().build();
+        User user = this.userService.register(data);
 
-        String encryptPassword = this.passwordEncoder.encode(data.password());
-        User newUser = new User(data.email(), encryptPassword, data.role());
+        URI uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(user.getId())
+                .toUri();
 
-        this.userRepository.save(newUser);
-
-        return ResponseEntity.ok().build();
+        return ResponseEntity.created(uri).body(new RegisterResponseDTO(user));
     }
 }

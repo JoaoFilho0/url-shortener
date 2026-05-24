@@ -21,9 +21,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfiguration {
     private final SecurityFilter securityFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
-    public SecurityConfiguration(SecurityFilter securityFilter) {
+    public SecurityConfiguration(SecurityFilter securityFilter,
+                                 RestAuthenticationEntryPoint restAuthenticationEntryPoint) {
         this.securityFilter = securityFilter;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
     }
 
     @Bean
@@ -31,9 +34,12 @@ public class SecurityConfiguration {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception.
+                        authenticationEntryPoint(restAuthenticationEntryPoint))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/shortener_url").hasAnyRole("ADMIN", "USER")
-                        .requestMatchers(HttpMethod.GET, "/shortener_url/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/short-urls/{code}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/short-urls").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/short-urls/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

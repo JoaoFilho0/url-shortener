@@ -7,8 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,11 +31,22 @@ class AuthorizationServiceTest {
     @Test
     void shouldLoadUserByUsername() {
         String email = "john@example.com";
-        when(userRepository.findByEmail(email)).thenReturn(userDetails);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(userDetails));
 
         UserDetails result = authorizationService.loadUserByUsername(email);
 
         assertThat(result).isSameAs(userDetails);
+        verify(userRepository).findByEmail(email);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserDoesNotExist() {
+        String email = "missing@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authorizationService.loadUserByUsername(email))
+                .isInstanceOf(UsernameNotFoundException.class)
+                .hasMessage("Email address not found");
         verify(userRepository).findByEmail(email);
     }
 }

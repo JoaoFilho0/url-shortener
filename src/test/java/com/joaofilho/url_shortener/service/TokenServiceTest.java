@@ -1,11 +1,13 @@
 package com.joaofilho.url_shortener.service;
 
+import com.joaofilho.url_shortener.exception.InvalidAuthenticationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,9 +46,8 @@ class TokenServiceTest {
     }
 
     @Test
-    void shouldReturnEmptyStringWhenTokenIsInvalid() {
-        String subject = tokenService.validateToken("invalid-token");
-
-        assertThat(subject).isEmpty();
+    void shouldThrowExceptionWhenTokenIsInvalid() {
+        assertThatThrownBy(() -> tokenService.validateToken("invalid-token"))
+                .isInstanceOf(InvalidAuthenticationException.class);
     }
 }

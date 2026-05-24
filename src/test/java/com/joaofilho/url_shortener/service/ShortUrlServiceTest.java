@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -118,11 +119,22 @@ class ShortUrlServiceTest {
         shortUrl.setOriginalUrl("https://example.com");
         shortUrl.setShortCode(code);
 
-        when(shortUrlRepository.findByShortCode(code)).thenReturn(shortUrl);
+        when(shortUrlRepository.findByShortCode(code)).thenReturn(Optional.of(shortUrl));
 
         ShortUrl result = shortUrlService.getShortUrlByShortCode(code);
 
         assertThat(result).isSameAs(shortUrl);
+        verify(shortUrlRepository).findByShortCode(code);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenShortUrlDoesNotExist() {
+        String code = "missing001";
+        when(shortUrlRepository.findByShortCode(code)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> shortUrlService.getShortUrlByShortCode(code))
+                .isInstanceOf(com.joaofilho.url_shortener.exception.ResourceNotFoundException.class)
+                .hasMessage("Short url not found");
         verify(shortUrlRepository).findByShortCode(code);
     }
 
